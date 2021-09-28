@@ -19,8 +19,10 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	splitHost := strings.Split(host, ":")
 	port, err := strconv.Atoi(splitHost[1])
 	if err != nil {
-		fmt.Println("ERROR: Failed to convert port number into int.")
-		fmt.Println(err)
+		os.Stderr.WriteString("ERROR: Failed to convert port number into int.")
+		//fmt.Println("ERROR: Failed to convert port number into int.")
+		os.Stderr.WriteString(err.Error())
+		//fmt.Println(err)
 		return
 	}
 
@@ -29,15 +31,20 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
 	client, err := winrm.NewClientWithParameters(endpoint, user, password, params)
 	if err != nil {
-		fmt.Println("ERROR: Failed to login to WinRM.")
-		fmt.Println(err)
+		os.Stderr.WriteString("ERROR: Failed to log into WinRM.")
+		//fmt.Println("ERROR: Failed to log into WinRM.")
+		os.Stderr.WriteString(err.Error())
+		//fmt.Println(err)
 		return
 	}
 
 	cmd := winrm.Powershell("ipconfig")
 	_, err = client.Run(cmd, os.Stdout, os.Stderr)
 	if err != nil {
-		fmt.Println(err)
+		os.Stderr.WriteString("ERROR: Failed to execute command through WinRM")
+		//fmt.Println("ERROR: Failed to execute command through WinRM.", os.Stderr)
+		os.Stderr.WriteString(err.Error())
+		//fmt.Println(err, os.Stderr)
 		return
 	}
 

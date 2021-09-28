@@ -3,6 +3,7 @@ package sshClient
 import (
 	"fmt"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -24,6 +25,8 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 
 	conn, err := ssh.Dial("tcp", host, sshConfig)
 	if err != nil {
+		os.Stderr.WriteString("ERROR: Could not connect to SSH with provided host, user, and password.")
+		os.Stderr.WriteString(err.Error())
 		return
 	}
 

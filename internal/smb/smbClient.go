@@ -3,6 +3,7 @@ package smb
 import (
 	"fmt"
 	"net"
+	"os"
 	"sync"
 
 	"github.com/hirochachacha/go-smb2"
@@ -17,8 +18,8 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	// Attempt to dial SMB on host
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
-		fmt.Println("ERROR: Initial SMB server dial failed.")
-		fmt.Println(err)
+		os.Stderr.WriteString("ERROR: Initial SMB server dial failed.")
+		os.Stderr.WriteString(err.Error())
 		return
 	}
 	defer conn.Close()
@@ -35,8 +36,8 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	// Redial with smbConn (provided user and pass) to attempt logging into SMB
 	dial, err := smbConn.Dial(conn)
 	if err != nil {
-		fmt.Println("ERROR: Could not connect to SMB server.")
-		fmt.Println(err)
+		os.Stderr.WriteString("ERROR: Could not connect to SMB server.")
+		os.Stderr.WriteString(err.Error())
 		return
 	}
 	defer logOff(dial)

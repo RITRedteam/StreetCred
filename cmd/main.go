@@ -23,14 +23,15 @@ to a file for now. hoping for something well-threaded. program
 will just keep running consistently
 */
 
-var userPath, boxesPath, password, outputPath string
+var userPath, boxesPath, password, outputPath, scriptPath string
 
 func init() {
 	const (
-		userPathUsage  = "Path to file containing list of users."
-		boxesPathUsage = "Path to file containing list of boxes."
-		passwordUsage  = "Password to attempt on users and boxes."
-		outputUsage    = "Output file name for successful responses."
+		userPathUsage   = "Path to file containing list of users."
+		boxesPathUsage  = "Path to file containing list of boxes."
+		passwordUsage   = "Password to attempt on users and boxes."
+		outputUsage     = "Output file name for successful responses."
+		scriptPathUsage = "Path to a script that should be executed on successful SSH/WinRM logon. If this option is not set, a script will not be executed."
 	)
 	flag.StringVar(&userPath, "userPath", "", userPathUsage)
 	flag.StringVar(&userPath, "u", "", userPathUsage+" (shorthand)")
@@ -43,6 +44,9 @@ func init() {
 
 	flag.StringVar(&outputPath, "output", "output.txt", outputUsage)
 	flag.StringVar(&outputPath, "o", "output.txt", outputUsage+" (shorthand)")
+
+	flag.StringVar(&scriptPath, "script", "", scriptPathUsage)
+	flag.StringVar(&scriptPath, "s", "", scriptPathUsage)
 
 	flag.Parse()
 }
