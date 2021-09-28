@@ -49,6 +49,7 @@ func SSHAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 func WinRMAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	// Split host and port number to be used when creating an endpoint
 	splitHost := strings.Split(host, ":")
 	port, err := strconv.Atoi(splitHost[1])
 	if err != nil {
@@ -57,16 +58,20 @@ func WinRMAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 		return
 	}
 
+	// Create an endpoint and setup the WinRM connection
 	endpoint := winrm.NewEndpoint(splitHost[0], port, false, true, nil, nil, nil, 30*time.Second)
 	params := winrm.DefaultParameters
 	params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
+
+	// Attempt to create WinRM client
 	client, err := winrm.NewClientWithParameters(endpoint, user, password, params)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to log into WinRM.")
+		os.Stderr.WriteString("ERROR(autopwn): Failed to create WinRM client")
 		os.Stderr.WriteString(err.Error())
 		return
 	}
 
+	// Attempt to execute a basic powershell command through WinRM
 	cmd := winrm.Powershell("ipconfig")
 	_, err = client.Run(cmd, os.Stdout, os.Stderr)
 	if err != nil {
