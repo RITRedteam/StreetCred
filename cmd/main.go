@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 
 	"github.com/opt/red-script/internal/files"
@@ -46,12 +47,17 @@ func init() {
 	flag.StringVar(&outputPath, "o", "output.txt", outputUsage+" (shorthand)")
 
 	flag.StringVar(&scriptPath, "script", "", scriptPathUsage)
-	flag.StringVar(&scriptPath, "s", "", scriptPathUsage)
+	flag.StringVar(&scriptPath, "s", "", scriptPathUsage+" (shorthand)")
 
 	flag.Parse()
 }
 
 func main() {
+	if len(userPath) == 0 || len(boxesPath) == 0 || len(password) == 0 {
+		os.Stderr.WriteString("ERROR: userPath, boxPath, and/or password not specified.\n")
+		flag.CommandLine.PrintDefaults()
+		return
+	}
 	users, err := files.ReadList(userPath)
 	if err != nil {
 		log.Fatal(err)

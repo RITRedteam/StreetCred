@@ -18,8 +18,8 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	// Attempt to dial SMB on host
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
-		os.Stderr.WriteString("ERROR: Initial SMB server dial failed.")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR: Initial SMB server dial failed.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 	defer conn.Close()
@@ -36,8 +36,8 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	// Redial with smbConn (provided user and pass) to attempt logging into SMB
 	dial, err := smbConn.Dial(conn)
 	if err != nil {
-		os.Stderr.WriteString("ERROR: Could not connect to SMB server.")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR: Could not connect to SMB server.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 	defer logOff(dial)

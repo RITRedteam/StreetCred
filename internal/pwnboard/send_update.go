@@ -29,16 +29,16 @@ func SendUpdate(ip string, info string) {
 	// Turn data struct into json
 	mData, err := json.Marshal(data)
 	if err != nil {
-		os.Stderr.WriteString("ERROR: Failed to marshal data.")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR: Failed to marshal data.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 
 	// Send json data to pwnboard
 	req, err := http.Post(PWNBOARD, "application/json", bytes.NewBuffer(mData))
 	if err != nil {
-		os.Stderr.WriteString("ERROR: Failed to send a post request to pwnboard.")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR: Failed to send a post request to pwnboard.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 

@@ -30,8 +30,8 @@ func SSHAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 	// Attempt SSH connection/login
 	conn, err := ssh.Dial("tcp", host, sshConfig)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Could not log into SSH with procided host, user, and password.")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR(autopwn): Could not log into SSH with procided host, user, and password.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 	fmt.Println("autopwn: Successful SSH connection @", host)
@@ -53,8 +53,8 @@ func WinRMAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 	splitHost := strings.Split(host, ":")
 	port, err := strconv.Atoi(splitHost[1])
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to convert port number into int.")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR(autopwn): Failed to convert port number into int.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 
@@ -66,8 +66,8 @@ func WinRMAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 	// Attempt to create WinRM client
 	client, err := winrm.NewClientWithParameters(endpoint, user, password, params)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to create WinRM client")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR(autopwn): Failed to create WinRM client.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 
@@ -75,8 +75,8 @@ func WinRMAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 	cmd := winrm.Powershell("ipconfig")
 	_, err = client.Run(cmd, os.Stdout, os.Stderr)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to execute command through WinRM.")
-		os.Stderr.WriteString(err.Error())
+		os.Stderr.WriteString("ERROR(autopwn): Failed to execute command through WinRM.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 
