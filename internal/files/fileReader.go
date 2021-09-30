@@ -7,10 +7,6 @@ import (
 
 func ReadList(path string) ([]string, error) {
 	var lines []string
-	//b, err := os.ReadFile(path)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	file, err := os.Open(path)
 
 	if err != nil {
@@ -30,5 +26,4 @@ func ReadList(path string) ([]string, error) {
 	}
 
 	return lines, nil
-	//return strings.Split(string(b), "\r\n"), nil
 }
