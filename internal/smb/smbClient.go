@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/hirochachacha/go-smb2"
 	"github.com/opt/red-script/internal/files"
@@ -20,7 +21,7 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	// Attempt to dial SMB on host
-	conn, err := net.Dial("tcp", host+":"+fmt.Sprint(DEFAULT_PORT))
+	conn, err := net.DialTimeout("tcp", host+":"+fmt.Sprint(DEFAULT_PORT), 10*time.Second)
 	if err != nil {
 		os.Stderr.WriteString(ERR_PREFIX + "Initial SMB server dial failed.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
