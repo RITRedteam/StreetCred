@@ -74,7 +74,7 @@ func main() {
 	var wg sync.WaitGroup
 	for _, b := range boxes {
 		for _, u := range users {
-			wg.Add(2)
+			wg.Add(3)
 			go sshClient.Connect(b, u, password, &wg)
 			go winrm.Connect(b, u, password, &wg)
 			go smb.Connect(b, u, password, &wg)

