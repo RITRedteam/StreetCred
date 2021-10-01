@@ -32,7 +32,7 @@ func SSHAutopwn(host, user, password, scriptPath string) {
 		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
-	fmt.Println("autopwn: Successful SSH connection @", host)
+	fmt.Println("autopwn: Successful SSH connection @" + host)
 	defer conn.Close()
 
 	// Read contents of script file and save to a string to be sent over through ssh
@@ -40,29 +40,38 @@ func SSHAutopwn(host, user, password, scriptPath string) {
 	fmt.Println(fileString)
 
 	// Create a new file in the tmp dir on the remote host containing the contents of the script
-	sshSessionExec(conn, "echo \""+fileString+"\"> /tmp/output.sh", host)
+	if sshSessionExec(conn, "echo \""+fileString+"\"> /tmp/output.sh", host) != nil {
+		return
+	}
 	// Execute the script on the remote host
-	sshSessionExec(conn, "sh /tmp/output.sh", host)
+	if sshSessionExec(conn, "sh /tmp/output.sh", host) != nil {
+		return
+	}
 	// Delete the script on the remote host such that the same path can be used again (and less trail)
-	sshSessionExec(conn, "rm /tmp/output.sh", host)
+	if sshSessionExec(conn, "rm /tmp/output.sh", host) != nil {
+		return
+	}
 
 }
 
 func sshSessionExec(conn *ssh.Client, cmd string, host string) error {
+	// Create a new session using conn
 	session, err := conn.NewSession()
 	if err != nil {
 		os.Stderr.WriteString("ERROR(autopwn): Could not create an SSH session.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return err
 	}
-	fmt.Println("autopwn: Successful SSH session creation @", host)
 
+	// Execute specified command through the SSH session
 	err = session.Run(cmd)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to execute command [ " + cmd + "] on the remote host.\n")
+		os.Stderr.WriteString("ERROR(autopwn): Failed to execute command [ " + cmd + " ] on the remote host through SSH.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return err
 	}
+	fmt.Println("autopwn: Successful command execution through SSH @" + host)
+	// Close the session (sessions can only be used to execute one instance of Run)
 	session.Close()
 
 	return nil
@@ -89,20 +98,35 @@ func WinRMAutopwn(host, user, password, scriptPath string) {
 
 	fmt.Println("Successful WinRM connection @", host)
 
-	// Attempt to execute a powershell command through WinRM
+	// Read contents of script and save to a string to be used in a command later
 	fileString, err := files.ReadString(scriptPath)
 	//if scriptPath[len(scriptPath)-3:] == "bat"
 	fmt.Println(fileString)
-	cmd := winrm.Powershell("echo \"" + fileString + "\" > 'C:/Windows/Temp/output.bat'")
-	_, err = client.Run(cmd, os.Stdout, os.Stderr)
-	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to write script to a file on the remote host through WinRM.\n")
-		os.Stderr.WriteString(err.Error() + "\n")
+
+	// Put the contents of fileString into a file on the remote host
+	if winrmExec(client, "echo \""+fileString+"\" > 'C:/Windows/Temp/output.bat'", host) != nil {
 		return
 	}
-	cmd = winrm.Powershell("'C:/Windows/Temp/output.bat'")
-	_, err = client.Run(cmd, os.Stdout, os.Stderr)
+	// Execute the file created on the remote host
+	if winrmExec(client, "'C:/Windows/Temp/output.bat'", host) != nil {
+		return
+	}
+	// Delete the file created on the remote host
+	if winrmExec(client, "rm 'C:/Windows/Temp/output.bat'", host) != nil {
+		return
+	}
 
-	// TODO: Read script from scriptPath
-	// TODO: Execute script through WinRM on host
+}
+
+func winrmExec(client *winrm.Client, cmd string, host string) error {
+	ps := winrm.Powershell(cmd)
+	_, err := client.Run(ps, os.Stdout, os.Stderr)
+	if err != nil {
+		os.Stderr.WriteString("ERROR(autopwn): Failed to execute command [ " + cmd + " ] on the remote host through WinRM.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
+		return err
+	}
+	fmt.Println("autopwn: Successful command execution through WinRM @" + host)
+
+	return nil
 }
