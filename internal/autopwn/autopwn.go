@@ -3,9 +3,6 @@ package autopwn
 import (
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/masterzen/winrm"
@@ -16,7 +13,7 @@ import (
 // Will attempt to execute a script located at scriptPath on the target host using
 //	provided user and password through SSH.
 func SSHAutopwn(host, user, password, scriptPath string) {
-	//defer wg.Done()
+
 	// Set up SSH connection config
 	sshConfig := &ssh.ClientConfig{
 		User: user,
@@ -66,7 +63,7 @@ func SSHAutopwn(host, user, password, scriptPath string) {
 	defer session.Close()
 	err = session.Run("sh /tmp/output.sh")
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to execute script on the remote host.\n")
+		os.Stderr.WriteString("ERROR(autopwn): Failed to execute script on the remote host through SSH.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
@@ -80,20 +77,12 @@ func SSHAutopwn(host, user, password, scriptPath string) {
 
 // Will attempt to execute a script located at scriptPath on the target host using
 //	provided user and password through WinRM.
-func WinRMAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
-	defer wg.Done()
+func WinRMAutopwn(host, user, password, scriptPath string) {
 
-	// Split host and port number to be used when creating an endpoint
-	splitHost := strings.Split(host, ":")
-	port, err := strconv.Atoi(splitHost[1])
-	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to convert port number into int.\n")
-		os.Stderr.WriteString(err.Error() + "\n")
-		return
-	}
+	port := 5985
 
 	// Create an endpoint and setup the WinRM connection
-	endpoint := winrm.NewEndpoint(splitHost[0], port, false, true, nil, nil, nil, 30*time.Second)
+	endpoint := winrm.NewEndpoint(host, port, false, true, nil, nil, nil, 30*time.Second)
 	params := winrm.DefaultParameters
 	params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
 
@@ -105,16 +94,21 @@ func WinRMAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
 		return
 	}
 
-	// Attempt to execute a basic powershell command through WinRM
-	cmd := winrm.Powershell("ipconfig")
+	fmt.Println("Successful WinRM connection @", host)
+
+	// Attempt to execute a powershell command through WinRM
+	fileString, err := files.ReadString(scriptPath)
+	//if scriptPath[len(scriptPath)-3:] == "bat"
+	fmt.Println(fileString)
+	cmd := winrm.Powershell("echo \"" + fileString + "\" > 'C:/Windows/Temp/output.bat'")
 	_, err = client.Run(cmd, os.Stdout, os.Stderr)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to execute command through WinRM.\n")
+		os.Stderr.WriteString("ERROR(autopwn): Failed to write script to a file on the remote host through WinRM.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
-
-	fmt.Println("Successful WinRM connection @", host)
+	cmd = winrm.Powershell("'C:/Windows/Temp/output.bat'")
+	_, err = client.Run(cmd, os.Stdout, os.Stderr)
 
 	// TODO: Read script from scriptPath
 	// TODO: Execute script through WinRM on host

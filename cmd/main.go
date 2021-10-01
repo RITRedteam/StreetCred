@@ -85,6 +85,7 @@ func main() {
 	for _, b := range boxes {
 		for _, u := range users {
 			autopwn.SSHAutopwn(b, u, password, scriptPath)
+			autopwn.WinRMAutopwn(b, u, password, scriptPath)
 		}
 	}
 
