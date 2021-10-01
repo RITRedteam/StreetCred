@@ -27,3 +27,22 @@ func ReadList(path string) ([]string, error) {
 
 	return lines, nil
 }
+
+func ReadString(path string) (string, error) {
+	var text string = ""
+	file, err := os.Open(path)
+
+	if err != nil {
+		os.Stderr.WriteString("ERROR: Failed to open specified file path: [ " + path + "]\n")
+		os.Stderr.WriteString(err.Error() + "\n")
+		return "", err
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		text += scanner.Text() + "\n"
+	}
+
+	return text, nil
+}

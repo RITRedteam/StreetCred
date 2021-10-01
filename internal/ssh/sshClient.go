@@ -2,7 +2,6 @@ package sshClient
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"sync"
 	"time"
@@ -26,13 +25,14 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
-		HostKeyCallback: ssh.HostKeyCallback(func(hostname string, remote net.Addr, key ssh.PublicKey) error { return nil }),
-		Timeout:         10 * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		//HostKeyCallback: ssh.HostKeyCallback(func(hostname string, remote net.Addr, key ssh.PublicKey) error { return nil }),
+		Timeout: 10 * time.Second,
 	}
 
 	conn, err := ssh.Dial("tcp", host+":"+fmt.Sprint(DEFAULT_PORT), sshConfig)
 	if err != nil {
-		os.Stderr.WriteString(ERR_PREFIX + "Could not connect to SSH with provided host, user, and password.\n")
+		os.Stderr.WriteString(ERR_PREFIX + "Could not connect to SSH on " + host + " with provided user and password.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}

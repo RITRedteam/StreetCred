@@ -7,6 +7,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/opt/red-script/internal/autopwn"
 	"github.com/opt/red-script/internal/files"
 	"github.com/opt/red-script/internal/smb"
 	sshClient "github.com/opt/red-script/internal/ssh"
@@ -81,6 +82,11 @@ func main() {
 		}
 	}
 	wg.Wait()
+	for _, b := range boxes {
+		for _, u := range users {
+			autopwn.SSHAutopwn(b, u, password, scriptPath)
+		}
+	}
 
-	fmt.Printf("Successfully checked %d entries, %d successful", len(boxes)*len(users), files.TotalWrites)
+	fmt.Printf("Successfully checked %d entries, %d successful\n", len(boxes)*len(users), files.TotalWrites)
 }

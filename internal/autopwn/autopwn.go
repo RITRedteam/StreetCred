@@ -2,7 +2,6 @@ package autopwn
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -10,34 +9,69 @@ import (
 	"time"
 
 	"github.com/masterzen/winrm"
+	"github.com/opt/red-script/internal/files"
 	"golang.org/x/crypto/ssh"
 )
 
 // Will attempt to execute a script located at scriptPath on the target host using
 //	provided user and password through SSH.
-func SSHAutopwn(host, user, password, scriptPath string, wg *sync.WaitGroup) {
-	defer wg.Done()
+func SSHAutopwn(host, user, password, scriptPath string) {
+	//defer wg.Done()
 	// Set up SSH connection config
 	sshConfig := &ssh.ClientConfig{
 		User: user,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
-		HostKeyCallback: ssh.HostKeyCallback(func(hostname string, remote net.Addr, key ssh.PublicKey) error { return nil }),
-		Timeout:         30 * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		//HostKeyCallback: ssh.HostKeyCallback(func(hostname string, remote net.Addr, key ssh.PublicKey) error { return nil }),
+		Timeout: 10 * time.Second,
 	}
 
 	// Attempt SSH connection/login
-	conn, err := ssh.Dial("tcp", host, sshConfig)
+	conn, err := ssh.Dial("tcp", host+":22", sshConfig)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Could not log into SSH with procided host, user, and password.\n")
+		os.Stderr.WriteString("ERROR(autopwn): Could not connect to SSH on " + host + " with provided user and password.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
 		return
 	}
 	fmt.Println("autopwn: Successful SSH connection @", host)
+	defer conn.Close()
+
+	session, err := conn.NewSession()
+	if err != nil {
+		os.Stderr.WriteString("ERROR(autopwn): Could not create an SSH session.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
+		return
+	}
+	fmt.Println("autopwn: Successful SSH session creation @", host)
+
+	fileString, err := files.ReadString(scriptPath)
+	fmt.Println(fileString)
+	err = session.Run("echo \"" + fileString + "\"> /tmp/output.sh")
+	if err != nil {
+		os.Stderr.WriteString("ERROR(autopwn): Failed to write script to a file on the remote host.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
+		return
+	}
+	session.Close()
+	session, err = conn.NewSession()
+	if err != nil {
+		os.Stderr.WriteString("ERROR(autopwn): Could not create an SSH session.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
+		session.Close()
+		return
+	}
+	fmt.Println("autopwn: Successful SSH session creation @", host)
+	defer session.Close()
+	err = session.Run("sh /tmp/output.sh")
+	if err != nil {
+		os.Stderr.WriteString("ERROR(autopwn): Failed to execute script on the remote host.\n")
+		os.Stderr.WriteString(err.Error() + "\n")
+		return
+	}
 
 	// Close the connection when the rest of the function is done running
-	defer conn.Close()
 
 	// TODO: Read script from scriptPath
 	// TODO: Execute script through SSH on host
