@@ -35,44 +35,37 @@ func SSHAutopwn(host, user, password, scriptPath string) {
 	fmt.Println("autopwn: Successful SSH connection @", host)
 	defer conn.Close()
 
+	// Read contents of script file and save to a string to be sent over through ssh
+	fileString, err := files.ReadString(scriptPath)
+	fmt.Println(fileString)
+
+	// Create a new file in the tmp dir on the remote host containing the contents of the script
+	sshSessionExec(conn, "echo \""+fileString+"\"> /tmp/output.sh", host)
+	// Execute the script on the remote host
+	sshSessionExec(conn, "sh /tmp/output.sh", host)
+	// Delete the script on the remote host such that the same path can be used again (and less trail)
+	sshSessionExec(conn, "rm /tmp/output.sh", host)
+
+}
+
+func sshSessionExec(conn *ssh.Client, cmd string, host string) error {
 	session, err := conn.NewSession()
 	if err != nil {
 		os.Stderr.WriteString("ERROR(autopwn): Could not create an SSH session.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
-		return
+		return err
 	}
 	fmt.Println("autopwn: Successful SSH session creation @", host)
 
-	fileString, err := files.ReadString(scriptPath)
-	fmt.Println(fileString)
-	err = session.Run("echo \"" + fileString + "\"> /tmp/output.sh")
+	err = session.Run(cmd)
 	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to write script to a file on the remote host.\n")
+		os.Stderr.WriteString("ERROR(autopwn): Failed to execute command [ " + cmd + "] on the remote host.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
-		return
+		return err
 	}
 	session.Close()
-	session, err = conn.NewSession()
-	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Could not create an SSH session.\n")
-		os.Stderr.WriteString(err.Error() + "\n")
-		session.Close()
-		return
-	}
-	fmt.Println("autopwn: Successful SSH session creation @", host)
-	defer session.Close()
-	err = session.Run("sh /tmp/output.sh")
-	if err != nil {
-		os.Stderr.WriteString("ERROR(autopwn): Failed to execute script on the remote host through SSH.\n")
-		os.Stderr.WriteString(err.Error() + "\n")
-		return
-	}
 
-	// Close the connection when the rest of the function is done running
-
-	// TODO: Read script from scriptPath
-	// TODO: Execute script through SSH on host
-
+	return nil
 }
 
 // Will attempt to execute a script located at scriptPath on the target host using
