@@ -3,6 +3,7 @@ package autopwn
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/masterzen/winrm"
@@ -37,7 +38,7 @@ func SSHAutopwn(host, user, password, scriptPath string) {
 
 	// Read contents of script file and save to a string to be sent over through ssh
 	fileString, err := files.ReadString(scriptPath)
-	fmt.Println(fileString)
+	//fmt.Println(fileString)
 
 	// Create a new file in the tmp dir on the remote host containing the contents of the script
 	if sshSessionExec(conn, "echo \""+fileString+"\"> /tmp/output.sh", host) != nil {
@@ -96,25 +97,37 @@ func WinRMAutopwn(host, user, password, scriptPath string) {
 		return
 	}
 
-	fmt.Println("Successful WinRM connection @", host)
-
 	// Read contents of script and save to a string to be used in a command later
 	fileString, err := files.ReadString(scriptPath)
-	//if scriptPath[len(scriptPath)-3:] == "bat"
-	fmt.Println(fileString)
+	var outputFile string = "output"
+	outputFile += "." + strings.Split(scriptPath, ".")[1]
+	//fmt.Println(fileString)
 
 	// Put the contents of fileString into a file on the remote host
-	if winrmExec(client, "echo \""+fileString+"\" > 'C:/Windows/Temp/output.bat'", host) != nil {
+	// if winrmExec(client, "echo -n \""+fileString+"\" > 'C:/Windows/Temp/"+outputFile+"'", host) != nil {
+	// 	return
+	// }
+	if /*outputFile == "output.bat" && */ winrmExec(client, fileString, host) != nil {
 		return
-	}
+	} /*else if outputFile == "output.ps1" {
+		if winrmExec(client, "echo -n \""+fileString+"\" > 'C:/Windows/Temp/"+outputFile+"'", host) != nil {
+			return
+		}
+		if winrmExec(client, "Get-Content C:/Windows/Temp/"+outputFile+" | powershell.exe -noprofile -", host) != nil {
+			return
+		}
+		if winrmExec(client, "rm 'C:/Windows/Temp/"+outputFile+"'", host) != nil {
+			return
+		}
+	} */
 	// Execute the file created on the remote host
-	if winrmExec(client, "'C:/Windows/Temp/output.bat'", host) != nil {
-		return
-	}
+	// if winrmExec(client, "C:/Windows/Temp/"+outputFile, host) != nil {
+	// 	return
+	// }
 	// Delete the file created on the remote host
-	if winrmExec(client, "rm 'C:/Windows/Temp/output.bat'", host) != nil {
-		return
-	}
+	// if winrmExec(client, "rm 'C:/Windows/Temp/"+outputFile+"'", host) != nil {
+	// 	return
+	// }
 
 }
 

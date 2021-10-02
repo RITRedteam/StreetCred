@@ -7,7 +7,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/opt/red-script/internal/autopwn"
 	"github.com/opt/red-script/internal/files"
 	"github.com/opt/red-script/internal/smb"
 	sshClient "github.com/opt/red-script/internal/ssh"
@@ -53,6 +52,10 @@ func init() {
 	flag.Parse()
 }
 
+func GetScriptPath() string {
+	return scriptPath
+}
+
 func main() {
 	if len(userPath) == 0 || len(boxesPath) == 0 || len(password) == 0 {
 		os.Stderr.WriteString("ERROR: userPath, boxPath, and/or password not specified.\n")
@@ -76,18 +79,18 @@ func main() {
 	for _, b := range boxes {
 		for _, u := range users {
 			wg.Add(3)
-			go sshClient.Connect(b, u, password, &wg)
-			go winrm.Connect(b, u, password, &wg)
+			go sshClient.Connect(b, u, password, scriptPath, &wg)
+			go winrm.Connect(b, u, password, scriptPath, &wg)
 			go smb.Connect(b, u, password, &wg)
 		}
 	}
 	wg.Wait()
-	for _, b := range boxes {
-		for _, u := range users {
-			autopwn.SSHAutopwn(b, u, password, scriptPath)
-			autopwn.WinRMAutopwn(b, u, password, scriptPath)
-		}
-	}
+	// for _, b := range boxes {
+	// 	for _, u := range users {
+	// 		autopwn.SSHAutopwn(b, u, password, scriptPath)
+	// 		autopwn.WinRMAutopwn(b, u, password, scriptPath)
+	// 	}
+	// }
 
 	fmt.Printf("Successfully checked %d entries, %d successful\n", len(boxes)*len(users), files.TotalWrites)
 }

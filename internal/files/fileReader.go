@@ -43,6 +43,7 @@ func ReadString(path string) (string, error) {
 	for scanner.Scan() {
 		text += scanner.Text() + "\n"
 	}
+	text = text[:len(text)-1]
 
 	return text, nil
 }
