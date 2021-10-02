@@ -10,7 +10,9 @@ import (
 
 // This should be the URL/IP of the pwnboard instance that SendUpdate
 // 	is sending the data to.
-var PWNBOARD string = "https://example.com" // Link to pwnboard [CHANGE ME]
+//var PWNBOARD string = "https://example.com" // Link to pwnboard [CHANGE ME]
+//var PWNBOARD string
+var PWNBOARD, err = os.LookupEnv("PWNBOARD")
 
 type Data struct {
 	IPs  string `json:"ip"`   // Target IP address as a string
@@ -35,7 +37,7 @@ func SendUpdate(ip string, info string) {
 	}
 
 	// Send json data to pwnboard
-	req, err := http.Post(PWNBOARD, "application/json", bytes.NewBuffer(mData))
+	req, err := http.Post(PWNBOARD+"/generic", "application/json", bytes.NewBuffer(mData))
 	if err != nil {
 		os.Stderr.WriteString("ERROR: Failed to send a post request to pwnboard.\n")
 		os.Stderr.WriteString(err.Error() + "\n")
