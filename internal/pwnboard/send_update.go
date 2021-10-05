@@ -10,8 +10,7 @@ import (
 
 // This should be the URL/IP of the pwnboard instance that SendUpdate
 // 	is sending the data to.
-//var PWNBOARD string = "https://example.com" // Link to pwnboard [CHANGE ME]
-//var PWNBOARD string
+//var PWNBOARD string = "http://example.com" // Link to pwnboard [CHANGE ME]
 var PWNBOARD, err = os.LookupEnv("PWNBOARD")
 
 type Data struct {

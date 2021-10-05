@@ -39,7 +39,20 @@ func Connect(host, user, password string, scriptPath string, wg *sync.WaitGroup)
 	}
 
 	fmt.Println("Successful SSH connection @", host)
-
+	session, err := conn.NewSession()
+	if err != nil {
+		os.Stderr.WriteString(err.Error())
+		session.Close()
+		conn.Close()
+		return
+	}
+	err = session.Run("ls")
+	if err != nil {
+		os.Stderr.WriteString(err.Error())
+		session.Close()
+		conn.Close()
+		return
+	}
 	conn.Close()
 
 	files.WriterChan <- fmt.Sprintf("ssh:'%s':'%s':'%s'\n", host, user, password)
