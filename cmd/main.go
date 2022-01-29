@@ -68,8 +68,8 @@ func main() {
 		flag.CommandLine.PrintDefaults()
 		return
 	}
-	var pUserPath *[]string
-	var pBoxesPath *[]string
+	var pUsers *[]string
+	var pBoxes *[]string
 	var users []string
 	var boxes []string
 
@@ -77,8 +77,6 @@ func main() {
 		v := viper.New()
 		v.SetConfigFile("config/config.yml")
 		v.SetConfigType("yaml")
-		// v.SetConfigName(configFilePath)
-		v.AddConfigPath("./config")
 		err := v.ReadInConfig()
 		if err != nil {
 			panic(fmt.Errorf("Fatal error config file: %w \n", err))
@@ -91,16 +89,16 @@ func main() {
 		boxes, _ = files.ReadList(boxesPath)
 	}
 
-	pUserPath = &users
-	pBoxesPath = &boxes
+	pUsers = &users
+	pBoxes = &boxes
 
 	go files.InitWriter(outputPath)
 
-	fmt.Printf("\nLoaded %d users and %d boxes\n", len(*pUserPath), len(*pBoxesPath))
+	fmt.Printf("\nLoaded %d users and %d boxes\n", len(*pUsers), len(*pBoxes))
 
 	var wg sync.WaitGroup
-	for _, b := range *pBoxesPath {
-		for _, u := range *pUserPath {
+	for _, b := range *pBoxes {
+		for _, u := range *pUsers {
 			wg.Add(3)
 			go sshClient.Connect(b, u, password, scriptPath, &wg)
 			go winrm.Connect(b, u, password, scriptPath, &wg)
@@ -115,5 +113,5 @@ func main() {
 	// 	}
 	// }
 
-	fmt.Printf("Successfully checked %d entries, %d successful\n", len(*pBoxesPath)*len(*pUserPath), files.TotalWrites)
+	fmt.Printf("Successfully checked %d entries, %d successful\n", len(*pBoxes)*len(*pUsers), files.TotalWrites)
 }
