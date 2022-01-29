@@ -1,0 +1,5 @@
+userPath: "path/to/users.txt"
+boxesPath: "path/to/boxes.txt"
+password: "defaultPassword"
+outputPath: "output.txt"
+scriptPath: "path/to/script.txt"
