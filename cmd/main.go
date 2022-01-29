@@ -13,53 +13,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-/*
-Write a program that takes in 2 files and a password.
-the first file will contain lines of users, second contains
-a list of boxes. you can probably find a way to consolidate
-those files. the password will be the default cred. the bot
-will run down all the IPs and users and try every single one
-with the default password. if it authenticates, just write
-to a file for now. hoping for something well-threaded. program
-will just keep running consistently
-*/
-
 var userPath, boxesPath, password, outputPath, scriptPath string
 var configFile bool
 
 func init() {
-	const (
-		userPathUsage   = "Path to file containing list of users."
-		boxesPathUsage  = "Path to file containing list of boxes."
-		passwordUsage   = "Password to attempt on users and boxes."
-		outputUsage     = "Output file name for successful responses."
-		scriptPathUsage = "Path to a script that should be executed on successful SSH/WinRM logon. If this option is not set, a script will not be executed."
-		configFileUsage = "Boolean to use config file."
-	)
-
-	flag.StringVar(&userPath, "userPath", "", userPathUsage)
-	flag.StringVar(&userPath, "u", "", userPathUsage+" (shorthand)")
-
-	flag.StringVar(&boxesPath, "boxPath", "", boxesPathUsage)
-	flag.StringVar(&boxesPath, "b", "", boxesPathUsage+" (shorthand)")
-
-	flag.StringVar(&password, "password", "", passwordUsage)
-	flag.StringVar(&password, "p", "", passwordUsage+" (shorthand)")
-
-	flag.StringVar(&outputPath, "output", "output.txt", outputUsage)
-	flag.StringVar(&outputPath, "o", "output.txt", outputUsage+" (shorthand)")
-
-	flag.StringVar(&scriptPath, "script", "", scriptPathUsage)
-	flag.StringVar(&scriptPath, "s", "", scriptPathUsage+" (shorthand)")
-
-	flag.BoolVar(&configFile, "configFile", false, configFileUsage)
-	flag.BoolVar(&configFile, "c", false, configFileUsage+" (shorthand)")
+	flag.StringVar(&userPath, "u", "", "Path to file containing list of users.")
+	flag.StringVar(&boxesPath, "b", "", "Path to file containing list of boxes.")
+	flag.StringVar(&password, "p", "", "Password to attempt on users and boxes.")
+	flag.StringVar(&outputPath, "o", "output.txt", "Output file name for successful responses.")
+	flag.StringVar(&scriptPath, "s", "", "Path to a script that should be executed on successful SSH/WinRM logon. If this option is not set, a script will not be executed.")
+	flag.BoolVar(&configFile, "c", false, "Boolean to use config file.")
 
 	flag.Parse()
-}
-
-func GetScriptPath() string {
-	return scriptPath
 }
 
 func main() {
@@ -114,4 +79,8 @@ func main() {
 	// }
 
 	fmt.Printf("Successfully checked %d entries, %d successful\n", len(*pBoxes)*len(*pUsers), files.TotalWrites)
+}
+
+func GetScriptPath() string {
+	return scriptPath
 }
