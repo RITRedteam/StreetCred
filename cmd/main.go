@@ -24,17 +24,19 @@ to a file for now. hoping for something well-threaded. program
 will just keep running consistently
 */
 
-var userPath, boxesPath, password, outputPath, scriptPath, configFilePath string
+var userPath, boxesPath, password, outputPath, scriptPath string
+var configFile bool
 
 func init() {
 	const (
-		userPathUsage       = "Path to file containing list of users."
-		boxesPathUsage      = "Path to file containing list of boxes."
-		passwordUsage       = "Password to attempt on users and boxes."
-		outputUsage         = "Output file name for successful responses."
-		scriptPathUsage     = "Path to a script that should be executed on successful SSH/WinRM logon. If this option is not set, a script will not be executed."
-		configFilePathUsage = "Path to config file to parse"
+		userPathUsage   = "Path to file containing list of users."
+		boxesPathUsage  = "Path to file containing list of boxes."
+		passwordUsage   = "Password to attempt on users and boxes."
+		outputUsage     = "Output file name for successful responses."
+		scriptPathUsage = "Path to a script that should be executed on successful SSH/WinRM logon. If this option is not set, a script will not be executed."
+		configFileUsage = "Boolean to use config file."
 	)
+
 	flag.StringVar(&userPath, "userPath", "", userPathUsage)
 	flag.StringVar(&userPath, "u", "", userPathUsage+" (shorthand)")
 
@@ -50,8 +52,8 @@ func init() {
 	flag.StringVar(&scriptPath, "script", "", scriptPathUsage)
 	flag.StringVar(&scriptPath, "s", "", scriptPathUsage+" (shorthand)")
 
-	flag.StringVar(&configFilePath, "configFilePath", "", configFilePathUsage)
-	flag.StringVar(&configFilePath, "c", "", configFilePathUsage+" (shorthand)")
+	flag.BoolVar(&configFile, "configFile", false, configFileUsage)
+	flag.BoolVar(&configFile, "c", false, configFileUsage+" (shorthand)")
 
 	flag.Parse()
 }
@@ -61,7 +63,7 @@ func GetScriptPath() string {
 }
 
 func main() {
-	if len(configFilePath) == 0 && (len(userPath) == 0 || len(boxesPath) == 0 || len(password) == 0) {
+	if configFile == false && (len(userPath) == 0 || len(boxesPath) == 0 || len(password) == 0) {
 		os.Stderr.WriteString("ERROR: Config file or arguments userPath, boxPath, and/or password not specified.\n")
 		flag.CommandLine.PrintDefaults()
 		return
@@ -71,12 +73,12 @@ func main() {
 	var users []string
 	var boxes []string
 
-	if len(configFilePath) != 0 {
+	if configFile == true {
 		v := viper.New()
-		v.SetConfigFile(configFilePath)
+		v.SetConfigFile("config/config.yml")
 		v.SetConfigType("yaml")
 		// v.SetConfigName(configFilePath)
-		v.AddConfigPath(".")
+		v.AddConfigPath("./config")
 		err := v.ReadInConfig()
 		if err != nil {
 			panic(fmt.Errorf("Fatal error config file: %w \n", err))

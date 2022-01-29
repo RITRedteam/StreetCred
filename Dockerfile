@@ -1,4 +1,6 @@
-FROM golang:latest
+# syntax=docker/dockerfile:1
+
+FROM golang:1.17
 
 WORKDIR /app
 
@@ -6,8 +8,8 @@ COPY go.mod ./
 COPY go.sum ./
 RUN go mod download
 
-COPY *.go ./
+COPY . .
 
-RUN go build
+# RUN go build /app/cmd/main.go -o /default
 
-CMD [ "/ ]
+CMD [ "go", "run", "/app/cmd/main.go", "-c"]
