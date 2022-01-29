@@ -22,16 +22,16 @@ go build main.go then ./main [options]
 `go run main.go -o output.txt -p password123 -u users.txt -b boxes.txt -s script.ps1`
 ### All Options
 ```
-  -c, -configFile
-        Boolean value to set if using a config file
-  -b, -boxPath string
-        Path to file containing list of boxes.
-  -o, -output string
-        Output file name for successful responses. (default "output.txt")
-  -p, -password string
-        Password to attempt on users and boxes.
-  -s, -script string
-        Path to a script that should be executed on successful SSH/WinRM logon. If this option is not set, a script will not be executed.
-  -u, -userPath string
-        Path to file containing list of users.
+  -c
+      If using a config file, use of this arg will set to bool value to true. Other arguments do not have to be provided.
+  -b string
+      Path to file containing list of boxes.
+  -o string
+      Output file name for successful responses. (default "output.txt")
+  -p string
+      Password to attempt on users and boxes.
+  -s string
+      Path to a script that should be executed on successful SSH/WinRM logon. If this option is not set, a script will not be executed.
+  -u string
+      Path to file containing list of users.
 ```
