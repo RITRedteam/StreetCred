@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 )
 
 // This should be the URL/IP of the pwnboard instance that SendUpdate
@@ -18,9 +20,17 @@ type Data struct {
 	Type string `json:"type"` // Describes what implant pwnboard is being updated from
 }
 
+// Handles error if obtaining environment variable fails
+func CheckEnvVariable(pwnboard string, err bool) {
+	if (len(strings.TrimSpace(pwnboard)) == 0) || (err != false) {
+		os.Stderr.WriteString("ERROR: Failed to find environment variable")
+		os.Stderr.WriteString(strconv.FormatBool(err) + "\n")
+		return
+	}
+}
+
 // Sends a post request with information about a target to pwnboard.
 func SendUpdate(ip string, info string) {
-
 	//use the Data struct to organize the data that will be sent to pwnboard
 	data := Data{
 		IPs:  ip,
